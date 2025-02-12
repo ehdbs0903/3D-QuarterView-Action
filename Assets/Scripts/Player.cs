@@ -12,6 +12,7 @@ public class Player : MonoBehaviour
     public GameObject[] weapons;
     public bool[] hasWeapons;
     public GameObject[] grenades;
+    public GameObject grenadeObj;
     public Camera followCamera;
 
     public int ammo;
@@ -30,7 +31,8 @@ public class Player : MonoBehaviour
     bool jumpDown;
     bool interactionDown;
     bool fireDown;
-    bool ReloadDown;
+    bool grenadeDown;
+    bool reloadDown;
     bool swapDown1;
     bool swapDown2;
     bool swapDown3;
@@ -80,8 +82,9 @@ public class Player : MonoBehaviour
         }
 
         Attack();
+        Grenade();
 
-        if (ReloadDown && !isJump && !isDodge && !isSwap && isFireReady)
+        if (reloadDown && !isJump && !isDodge && !isSwap && isFireReady)
         {
             Reload();
         }
@@ -106,7 +109,8 @@ public class Player : MonoBehaviour
         jumpDown = Input.GetButton("Jump");
         interactionDown = Input.GetButtonDown("Interaction");
         fireDown = Input.GetButton("Fire1");
-        ReloadDown = Input.GetButtonDown("Reload");
+        grenadeDown = Input.GetButtonDown("Fire2");
+        reloadDown = Input.GetButtonDown("Reload");
         swapDown1 = Input.GetButtonDown("Swap1");
         swapDown2 = Input.GetButtonDown("Swap2");
         swapDown3 = Input.GetButtonDown("Swap3");
@@ -170,6 +174,34 @@ public class Player : MonoBehaviour
             fireDelay = 0;
         }
 
+    }
+
+    void Grenade()
+    {
+        if (hasGrenades == 0)
+        {
+            return;
+        }
+
+        if (grenadeDown && !isReload && !isSwap)
+        {
+            Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit rayHit;
+
+            if (Physics.Raycast(ray, out rayHit, 100))
+            {
+                Vector3 nextVec = rayHit.point - transform.position;
+                nextVec.y = 2;
+
+                GameObject instantGrenade = Instantiate(grenadeObj, transform.position, transform.rotation);
+                Rigidbody rigidGrenade = instantGrenade.GetComponent<Rigidbody>();
+                rigidGrenade.AddForce(nextVec, ForceMode.Impulse);
+                rigidGrenade.AddTorque(Vector3.back * 10, ForceMode.Impulse);
+
+                hasGrenades--;
+                grenades[hasGrenades].SetActive(false);
+            }
+        }
     }
 
     void Reload()
