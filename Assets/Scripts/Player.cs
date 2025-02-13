@@ -43,12 +43,14 @@ public class Player : MonoBehaviour
     bool isReload;
     bool isFireReady = true;
     bool isBorder;
+    bool isDamaged;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
 
     Rigidbody rb;
     Animator anim;
+    MeshRenderer[] meshRenderers;
 
     GameObject nearObject;
     Weapon equipWeapon;
@@ -59,6 +61,7 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponentInChildren<Animator>();
+        meshRenderers = GetComponentsInChildren<MeshRenderer>();
     }
 
     void Update()
@@ -318,6 +321,29 @@ public class Player : MonoBehaviour
         isBorder = Physics.Raycast(transform.position, transform.forward, 5, LayerMask.GetMask("Wall"));
     }
 
+    IEnumerator OnDamage(bool isBossAtk)
+    {
+        isDamaged = true;
+        foreach (MeshRenderer mesh in meshRenderers)
+        {
+            mesh.material.color = Color.yellow;
+        }
+
+        if (isBossAtk)
+            rb.AddForce(transform.forward * -25, ForceMode.Impulse);
+
+        yield return new WaitForSeconds(1f);
+
+        isDamaged = false;
+        foreach (MeshRenderer mesh in meshRenderers)
+        {
+            mesh.material.color = Color.white;
+        }
+
+        if (isBossAtk)
+            rb.velocity = Vector3.zero;
+    }
+
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.tag == "Floor")
@@ -358,6 +384,22 @@ public class Player : MonoBehaviour
                     break;
             }
             Destroy(other.gameObject);
+        }
+        else if (other.tag == "EnemyBullet")
+        {
+            if (!isDamaged)
+            {
+                Bullet enemyBullet = other.GetComponent<Bullet>();
+                health -= enemyBullet.damage;
+
+                bool isBossAtk = other.name == "Boss Melee Area";
+                StartCoroutine(OnDamage(isBossAtk));
+            }
+
+            if (other.GetComponent<Rigidbody>() != null)
+            {
+                Destroy(other.gameObject);
+            }
         }
     }
 
