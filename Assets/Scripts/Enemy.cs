@@ -10,13 +10,16 @@ public class Enemy : MonoBehaviour
     public Type enemyType;
     public int maxHealth;
     public int curHealth;
+    public int score;
+    public GameManager manager;
     public Transform target;
     public BoxCollider meleeArea;
     public GameObject bullet;
     public bool isChase;
     public bool isAttack;
     public bool isDead;
-
+    public bool isDamaged;
+    public GameObject[] coins;
     public Rigidbody rb;
     public BoxCollider boxCollider;
     public MeshRenderer[] meshRenderers;
@@ -94,24 +97,49 @@ public class Enemy : MonoBehaviour
 
     IEnumerator OnDamage(Vector3 reactVec, bool isGrenade)
     {
+        if (isDamaged)
+            yield break;
+        isDamaged = true;
+
         foreach (MeshRenderer mesh in meshRenderers)
             mesh.material.color = Color.red;
         yield return new WaitForSeconds(0.1f);
 
-        if (curHealth > 0)
+        if (curHealth > 0 && !isDead)
         {
             foreach (MeshRenderer mesh in meshRenderers)
                 mesh.material.color = Color.white;
         }
         else
         {
+            isDead = true;
             foreach (MeshRenderer mesh in meshRenderers)
                 mesh.material.color = Color.grey;
             gameObject.layer = 13;
-            isDead = true;
             isChase = false;
             nav.enabled = false;
             anim.SetTrigger("doDie");
+
+            Player player = target.GetComponent<Player>();
+            player.score += score;
+            int ranCoin = Random.Range(0, 3);
+            Instantiate(coins[ranCoin], transform.position, Quaternion.identity);
+
+            switch (enemyType)
+            {
+                case Type.A:
+                    manager.enemyCntA--;
+                    break;
+                case Type.B:
+                    manager.enemyCntB--;
+                    break;
+                case Type.C:
+                    manager.enemyCntC--;
+                    break;
+                case Type.D:
+                    manager.enemyCntD--;
+                    break;
+            }
 
             if (isGrenade)
             {
@@ -128,9 +156,11 @@ public class Enemy : MonoBehaviour
                 rb.AddForce(reactVec * 5, ForceMode.Impulse);
             }
 
-            if (enemyType != Type.D)
-                Destroy(gameObject, 4);
+            Destroy(gameObject, 3);
         }
+
+        yield return new WaitForSeconds(0.1f);
+        isDamaged = false;
     }
 
     void Targeting()
@@ -147,12 +177,12 @@ public class Enemy : MonoBehaviour
                     targetRange = 3f;
                     break;
                 case Type.B:
-                    targetRadius = 1f;
+                    targetRadius = 1.5f;
                     targetRange = 12f;
                     break;
                 case Type.C:
                     targetRadius = 0.5f;
-                    targetRange = 25f;
+                    targetRange = 35f;
                     break;
             }
 
@@ -174,7 +204,7 @@ public class Enemy : MonoBehaviour
         switch (enemyType)
         {
             case Type.A:
-                yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(0.5f);
                 meleeArea.enabled = true;
 
                 yield return new WaitForSeconds(1f);
@@ -185,10 +215,10 @@ public class Enemy : MonoBehaviour
 
             case Type.B:
                 yield return new WaitForSeconds(0.1f);
-                rb.AddForce(transform.forward * 20, ForceMode.Impulse);
+                rb.AddForce(transform.forward * 25, ForceMode.Impulse);
                 meleeArea.enabled = true;
 
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(1f);
                 rb.velocity = Vector3.zero;
                 meleeArea.enabled = false;
 
