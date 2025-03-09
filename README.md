@@ -1,6 +1,6 @@
 # 🎮 3D 쿼터뷰 액션 게임 프로젝트
-PC(Windows)용 게임 프로젝트
-https://youtu.be/yvYI2q-5Z_I
+PC(Windows)용 게임 프로젝트  
+📺 **[게임 플레이 영상 보기](https://youtu.be/yvZube/yv/yv/yv)**
 <br></br>
 
 ## 📖 프로젝트 개요
