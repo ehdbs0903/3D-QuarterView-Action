@@ -224,7 +224,7 @@ public class Player : MonoBehaviour
         anim.SetTrigger("doReload");
         isReload = true;
 
-        Invoke("ReloadOut", 3f);
+        Invoke("ReloadOut", 2f);
     }
 
     void ReloadOut()
